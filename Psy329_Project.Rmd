@@ -19,5 +19,111 @@ load("/Users/caseyzhang/Desktop/ICPSR_36850/DS0001/36850-0001-Data.rda")
 ```{r}
 Project_data <- da36850.0001 %>%
   select(DEMGEN, GRIT01, GRIT02, GRIT03, GRIT04, GRIT05, GRIT06, GRIT07, GRIT08, TSCS01, TSCS02, TSCS03, TSCS04, TSCS05, TSCS06, TSCS07, TSCS08, TSCS09)
+
+#Missing values, listwise deletion?
+
+```
+
+# Recode Variables
+```{r}
+
+#Gender: Change Numeric Values to Characters
+Project_data %>% count(DEMGEN)
+
+Project_data<- Project_data%>%
+  mutate(DEMGEN = str_replace_all(DEMGEN, c("\\(1\\) Female" = "1", "\\(0\\) Male" = "0")))
+
+#Re-code reverse coded items: grit(1,5), self control(4,6,9)
+Project_data$GRIT01_R <- 5 - Project_data$GRIT01
+Project_data$GRIT05_R <- 5 - Project_data$GRIT05
+Project_data$TSCS04_R <- 5 - Project_data$TSCS04
+Project_data$TSCS06_R <- 5 - Project_data$TSCS06
+Project_data$TSCS09_R <- 5 - Project_data$TSCS09
+
+```
+# Create Composites (grit, self control)
+```{r}
+
+Project_data <- Project_data %>%
+  mutate(GRIT = rowMeans(cbind(GRIT01_R, GRIT02, GRIT03, GRIT04, GRIT05_R, GRIT06, GRIT07, GRIT08)))
+
+Project_data <- Project_data %>%
+  mutate(TSCS = rowMeans(cbind(TSCS01, TSCS02, TSCS03, TSCS04_R, TSCS05, TSCS06, TSCS07, TSCS08, TSCS09_R)))
+
+```
+
+#Normality Assumption Test
+- Do I need to visualize it or just a Shapiro test is fine?
+```{r}
+
+#Overall grit
+describe(Project_data$GRIT)
+shapiro.test(Project_data$GRIT)
+#P-value (8.511e-12) is below 0.05, which suggests the overall grit distribution is not normal.
+
+#Grouped grit
+Project_data %>%
+  group_by(DEMGEN) %>%
+  summarize(W = shapiro.test(GRIT)$statistic, p_value =
+shapiro.test(GRIT)$p.value)
+#None of the group distributions are normal either.
+
+#Overall self control
+describe(Project_data$TSCS)
+shapiro.test(Project_data$TSCS)
+
+#Grouped self control
+Project_data %>%
+  group_by(DEMGEN) %>%
+  summarize(W = shapiro.test(TSCS)$statistic, p_value =
+shapiro.test(TSCS)$p.value)
+
+#None are normal distributions.
+
+```
+
+#Equal Variance Assumption
+```{r}
+#Descriptive variance (GRIT)
+Project_data_clean<-drop_na(Project_data)
+var(Project_data$GRIT)
+
+Project_data_clean %>%
+  group_by(DEMGEN) %>%
+  summarize(variance = var(GRIT))
+
+#Levene's test
+leveneTest(GRIT~DEMGEN, Project_data)
+
+MANOVA(Project_data, dv = "GRIT", between = "DEMGEN")
+
+#Interpretation: statistically significant (p=0.002<.005), variances are not equal. Need to transform.
+
+#Descriptive variance (SELF CONTROL)
+Project_data_clean<-drop_na(Project_data)
+var(Project_data$TSCS)
+
+Project_data_clean %>%
+  group_by(DEMGEN) %>%
+  summarize(variance = var(TSCS))
+
+#Levene's test
+leveneTest(TSCS~DEMGEN, Project_data)
+
+MANOVA(Project_data, dv = "TSCS", between = "DEMGEN")
+
+#Interpretation: statistically insignificant (p=.0192>0.05), variances are not equal. 
+
+
+```
+
+# Transformation
+```{r}
+
+Project_data$GRIT_log <- log10(Project_data$GRIT
+Project_data$TSCS_log <- log10(Project_data$TSCS)
+
+
+
 ```
 
