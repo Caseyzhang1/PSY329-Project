@@ -52,7 +52,7 @@ Project_data <- Project_data %>%
 
 ```
 
-#Normality Assumption Test
+#Normality Assumption Test (DELETE)
 - Do I need to visualize it or just a Shapiro test is fine?
 ```{r}
 
@@ -82,7 +82,7 @@ shapiro.test(TSCS)$p.value)
 
 ```
 
-#Equal Variance Assumption
+#Equal Variance Assumption (DELETE)
 ```{r}
 #Descriptive variance (GRIT)
 Project_data_clean<-drop_na(Project_data)
@@ -117,13 +117,23 @@ MANOVA(Project_data, dv = "TSCS", between = "DEMGEN")
 
 ```
 
-# Transformation
+# Correlation between self-control and grit
 ```{r}
 
-Project_data$GRIT_log <- log10(Project_data$GRIT
-Project_data$TSCS_log <- log10(Project_data$TSCS)
+Project_data <- Project_data %>%
+  select(GRIT, TSCS)
+
+Corr(Project_data)
 
 
+ggplot(Project_data, aes(x = GRIT, y = TSCS)) + geom_point() + geom_smooth(method = lm) + theme_bruce() 
+ggplot(Project_data_clean, aes(x = GRIT, y = TSCS)) + geom_point() + geom_smooth(method = lm) + theme_bruce() +facet_wrap(~DEMGEN)
+
+```
+# Test whether the correlation is moderated by gender
+```{r}
+
+PROCESS(Project_data_clean, y = "GRIT", x = "TSCS", mods = c("DEMGEN"))
 
 ```
 
