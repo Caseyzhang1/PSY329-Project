@@ -67,11 +67,23 @@ Project_data_cor <- Project_data %>%
 
 Corr(Project_data_cor)
 
+```
+
+# Test whether the correlation is moderated by gender
+```{r}
+
+PROCESS(Project_data, y = "GRIT", x = "TSCS", mods = c("DEMGEN"))
+
+```
+
+#Visualize the correlation overall & correlation grouped by gender
+```{r}
 ggplot(Project_data, aes(x = GRIT, y = TSCS)) + geom_point() + geom_smooth(method = lm) + theme_bruce() 
 ggplot(Project_data, aes(x = GRIT, y = TSCS)) + geom_point() + geom_smooth(method = lm) + theme_bruce() +facet_wrap(~DEMGEN)
 
 ```
-# Test whether the correlation is moderated by gender
+
+# Exploratory Question: Test whether the correlation is moderated by race & visualize the correlation grouped by race
 ```{r}
 
 PROCESS(Project_data, y = "GRIT", x = "TSCS", mods = c("DEMRA010"))
