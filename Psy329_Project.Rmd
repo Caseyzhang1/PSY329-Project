@@ -9,6 +9,7 @@ output: "github_document"
 library(haven) #to load datasets (.csv, .hav)
 library(dplyr) #to recode variables
 library(ggplot2) #density plots, etc.
+library(tidyr)
 #when you make changes, press knit, commit to main - changes will be reflected in github desktop & online
 
 
