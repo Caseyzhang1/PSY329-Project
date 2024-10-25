@@ -18,9 +18,10 @@ load("/Users/caseyzhang/Desktop/ICPSR_36850/DS0001/36850-0001-Data.rda")
 # Narrow Down Data
 ```{r}
 Project_data <- da36850.0001 %>%
-  select(DEMGEN, GRIT01, GRIT02, GRIT03, GRIT04, GRIT05, GRIT06, GRIT07, GRIT08, TSCS01, TSCS02, TSCS03, TSCS04, TSCS05, TSCS06, TSCS07, TSCS08, TSCS09)
+  select(DEMGEN, GRIT01, GRIT02, GRIT03, GRIT04, GRIT05, GRIT06, GRIT07, GRIT08, TSCS01, TSCS02, TSCS03, TSCS04, TSCS05, TSCS06, TSCS07, TSCS08, TSCS09, DEMRA010)
 
-#Missing values, listwise deletion?
+#Missing values: listwise deletion
+Project_data<- drop_na(Project_data)
 
 ```
 
@@ -40,6 +41,12 @@ Project_data$TSCS04_R <- 5 - Project_data$TSCS04
 Project_data$TSCS06_R <- 5 - Project_data$TSCS06
 Project_data$TSCS09_R <- 5 - Project_data$TSCS09
 
+#Race: Change Numeric Values to Characters
+Project_data %>% count(DEMRA010)
+
+Project_data<- Project_data%>%
+  mutate(DEMRA010 = str_replace_all(DEMRA010, c("\\(1\\) Yes" = "1", "\\(0\\) No" = "0")))
+
 ```
 # Create Composites (grit, self control)
 ```{r}
@@ -52,88 +59,23 @@ Project_data <- Project_data %>%
 
 ```
 
-#Normality Assumption Test (DELETE)
-- Do I need to visualize it or just a Shapiro test is fine?
-```{r}
-
-#Overall grit
-describe(Project_data$GRIT)
-shapiro.test(Project_data$GRIT)
-#P-value (8.511e-12) is below 0.05, which suggests the overall grit distribution is not normal.
-
-#Grouped grit
-Project_data %>%
-  group_by(DEMGEN) %>%
-  summarize(W = shapiro.test(GRIT)$statistic, p_value =
-shapiro.test(GRIT)$p.value)
-#None of the group distributions are normal either.
-
-#Overall self control
-describe(Project_data$TSCS)
-shapiro.test(Project_data$TSCS)
-
-#Grouped self control
-Project_data %>%
-  group_by(DEMGEN) %>%
-  summarize(W = shapiro.test(TSCS)$statistic, p_value =
-shapiro.test(TSCS)$p.value)
-
-#None are normal distributions.
-
-```
-
-#Equal Variance Assumption (DELETE)
-```{r}
-#Descriptive variance (GRIT)
-Project_data_clean<-drop_na(Project_data)
-var(Project_data$GRIT)
-
-Project_data_clean %>%
-  group_by(DEMGEN) %>%
-  summarize(variance = var(GRIT))
-
-#Levene's test
-leveneTest(GRIT~DEMGEN, Project_data)
-
-MANOVA(Project_data, dv = "GRIT", between = "DEMGEN")
-
-#Interpretation: statistically significant (p=0.002<.005), variances are not equal. Need to transform.
-
-#Descriptive variance (SELF CONTROL)
-Project_data_clean<-drop_na(Project_data)
-var(Project_data$TSCS)
-
-Project_data_clean %>%
-  group_by(DEMGEN) %>%
-  summarize(variance = var(TSCS))
-
-#Levene's test
-leveneTest(TSCS~DEMGEN, Project_data)
-
-MANOVA(Project_data, dv = "TSCS", between = "DEMGEN")
-
-#Interpretation: statistically insignificant (p=.0192>0.05), variances are not equal. 
-
-
-```
-
 # Correlation between self-control and grit
 ```{r}
 
-Project_data <- Project_data %>%
+Project_data_cor <- Project_data %>%
   select(GRIT, TSCS)
 
-Corr(Project_data)
-
+Corr(Project_data_cor)
 
 ggplot(Project_data, aes(x = GRIT, y = TSCS)) + geom_point() + geom_smooth(method = lm) + theme_bruce() 
-ggplot(Project_data_clean, aes(x = GRIT, y = TSCS)) + geom_point() + geom_smooth(method = lm) + theme_bruce() +facet_wrap(~DEMGEN)
+ggplot(Project_data, aes(x = GRIT, y = TSCS)) + geom_point() + geom_smooth(method = lm) + theme_bruce() +facet_wrap(~DEMGEN)
 
 ```
 # Test whether the correlation is moderated by gender
 ```{r}
 
-PROCESS(Project_data_clean, y = "GRIT", x = "TSCS", mods = c("DEMGEN"))
+PROCESS(Project_data, y = "GRIT", x = "TSCS", mods = c("DEMRA010"))
+ggplot(Project_data, aes(x = GRIT, y = TSCS)) + geom_point() + geom_smooth(method = lm) + theme_bruce() +facet_wrap(~DEMRA010)
 
 ```
 
