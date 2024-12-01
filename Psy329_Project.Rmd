@@ -86,6 +86,26 @@ Project_data_cor <- Project_data %>%
 
 Corr(Project_data_cor)
 
+# Ensure Project_data_cor is correctly created
+Project_data_cor <- Project_data %>%
+  select(GRIT, TSCS)
+
+# Calculate the correlation coefficient
+correlation <- cor(Project_data_cor$GRIT, Project_data_cor$TSCS, use = "complete.obs")
+
+# Print the correlation to verify
+print(paste("Correlation coefficient:", round(correlation, 2)))
+
+# Plot the scatter plot
+plot(Project_data_cor$TSCS, Project_data_cor$GRIT,
+     main = paste("Correlation Between Self-control and Grit (r =", round(correlation, 2), ")"),
+     xlab = "Self-control", ylab = "Grit",
+     pch = 19, col = "blue")
+
+# Add trend line
+abline(lm(TSCS ~ GRIT, data = Project_data_cor), col = "red")
+
+
 ```
 
 # Test whether the correlation is moderated by gender
@@ -100,6 +120,8 @@ PROCESS(Project_data, y = "GRIT", x = "TSCS", mods = c("DEMGEN"))
 ggplot(Project_data, aes(x = GRIT, y = TSCS)) + geom_point() + geom_smooth(method = lm) + theme_bruce() 
 ggplot(Project_data, aes(x = GRIT, y = TSCS)) + geom_point() + geom_smooth(method = lm) + theme_bruce() +facet_wrap(~DEMGEN)
 
+
+
 ```
 
 # Exploratory Question: Test whether the correlation is moderated by race & visualize the correlation grouped by race
@@ -111,12 +133,10 @@ ggplot(Project_data, aes(x = GRIT, y = TSCS)) + geom_point() + geom_smooth(metho
 ```
 
 #Reliability
-Note: I tried the way we learned in class (code shown below) and it didn't work with my dataset for some reason so I used different methods.
-
 Variable 1: Self-control, TSCS (9 items, R=4,6,9)
 Variable 2: Grit, GRIT (8 items, R=1,3,5)
 
-The cronbach's alpha for self-control is 0.33 and for grit it is 0.02, both of which are poor.
+The cronbach's alpha for self-control is 0.697 and for grit it is 0.657, both of which are considered acceptable.
 ```{r}
 
 Alpha(Project_data, "TSCS0", 1:9) 
@@ -125,12 +145,13 @@ Alpha(Project_data, "GRIT0", 1:8)
 
 ```
 # Exploratory Factor Analysis
-For self-control, two factors have Eigenvalues above 1, there are 2 points before the flattened point of the scree plot, and there are 2 actual dots above the simulated scree plot, suggesting there are 2 factors. The range of factor loadings and percentage of variance explained is -0.207-0.569 and 31.092% for factor 1 and -0.460-0.671 and 15.225% for factor 2. Overall, the measurament validity is unacceptable to good based on factor 1 and unacceptable to acceptable based on factor 2.
+For self-control, it detects 2 factors because 2 factors have Eigenvalues above 1, there are 2 points before the flattened point of the scree plot, and there are 2 actual dots above the simulated scree plot. However, the detection of 2 factors was a result of the reverse-coded items so 1 factor was forced. The range of factor loadings and percentage of variance explained for factor 1 is 0.181-0.629 and 31.092%. Overall, the measurement validity is unacceptable to good based on factor 1.
 
-For grit, two factors have Eigenvalues above 1, there are 2 points before the flattened point of the scree plot, and there are 2 actual dots above the simulated scree plot, suggesting there are 2 factors. The range of factor loadings and percentage of variance explained is -0.143-0.820 and 31.187% for factor 1 and -0.198-0.515 and 18.667% for factor 2. Overall, the measurament validity is unacceptable to good based on factor 1 and unacceptable to acceptable based on factor 2.
+For grit, it detects 2 factors because 2 factors have Eigenvalues above 1, there are 2 points before the flattened point of the scree plot, and there are 2 actual dots above the simulated scree plot. However, again, the detection of 2 factors was a result of the reverse-coded items so 1 factor was forced. The range of factor loadings and percentage of variance explained for factor 1 is 0.258-0.720 and 31.187%. Overall, the measurament validity is unacceptable to good based on factor 1.
+
+These 
 ```{r}
 
-#Didn't work
 EFA(Project_data, "TSCS0", 1:9, method = "pa", plot.scree = TRUE, nfactors = 1)
 EFA(Project_data, "GRIT0", 1:8, method = "pa", plot.scree = TRUE, nfactors = 1)
 ```
